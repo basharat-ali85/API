@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -85,7 +84,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $this->generateToken($user);
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'User Loged in',
@@ -93,24 +92,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        JWTAuth::invalidate($request->token);
-        return response()->json(['message' => 'User successfully loged out'], 200);
-    }
+        Auth::user()->tokens()->delete();
 
-    private function generateToken($user)
-    {
-        $payload = [
-            'iss' => config('app.url'),
-            'sub' => $user->id,
-            'iat' => now()->timestamp,
-            'exp' => now()->addDays(7)->timestamp,
-        ];
-
-        $token = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT'])) . '.' . base64_encode(json_encode($payload));
-        $signature = Hash::make($token);
-
-        return $token . '.' . $signature;
+        return response()->json(['message' => 'User successfully logged out'], 200);
     }
 }
