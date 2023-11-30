@@ -85,7 +85,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = JWTAuth::fromUser($user);
+        $token = $this->generateToken($user);
 
         return response()->json([
             'message' => 'User Loged in',
@@ -97,5 +97,20 @@ class AuthController extends Controller
     {
         JWTAuth::invalidate($request->token);
         return response()->json(['message' => 'User successfully loged out'], 200);
+    }
+
+    private function generateToken($user)
+    {
+        $payload = [
+            'iss' => config('app.url'),
+            'sub' => $user->id,
+            'iat' => now()->timestamp,
+            'exp' => now()->addDays(7)->timestamp,
+        ];
+
+        $token = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT'])) . '.' . base64_encode(json_encode($payload));
+        $signature = Hash::make($token);
+
+        return $token . '.' . $signature;
     }
 }

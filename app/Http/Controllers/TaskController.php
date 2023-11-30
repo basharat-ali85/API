@@ -15,10 +15,10 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = Task::with('user')->where('user_id', Auth::id())->paginate(10);
+        $tasks = Task::where('user_id', Auth::id())->paginate(10);
 
         return response()->json([
-            'message' => 'Following are the Task with user',
+            'message' => 'Following are the Task',
             'data' => $tasks
         ], 200);
     }
@@ -37,8 +37,7 @@ class TaskController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required',
-            'description' => 'required',
-            'user_id' => 'required'
+            'description' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -47,15 +46,8 @@ class TaskController extends Controller
             ], 422);
         }
 
-        // Find the user by ID
-        $user = User::find($request->user_id);
-
-        // Check if the user exists
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-
         $data = $request->all();
+        $data['user_id'] = Auth::id();
         Task::create($data);
 
         return response()->json(['message' => 'Task created successfully'], 200);
@@ -74,10 +66,10 @@ class TaskController extends Controller
      */
     public function edit(string $id)
     {
-        $task = Task::with('user')->find($id);
+        $task = Task::find($id);
 
         return response()->json([
-            'message' => 'Following is the Task with user',
+            'message' => 'Following is the Task',
             'data' => $task
         ], 200);
     }
@@ -89,8 +81,7 @@ class TaskController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required',
-            'description' => 'required',
-            'user_id' => 'required'
+            'description' => 'required'
         ]);
 
         if ($validator->fails()) {
